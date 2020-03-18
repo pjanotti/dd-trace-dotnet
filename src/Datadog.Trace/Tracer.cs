@@ -362,6 +362,11 @@ namespace Datadog.Trace
         /// </summary>
         public void StartDiagnosticObservers()
         {
+            if (!Settings.DiagnosticSourceEnabled)
+            {
+                return;
+            }
+
             // instead of adding a hard dependency on DiagnosticSource,
             // check if it is available before trying to use it
             var type = Type.GetType("System.Diagnostics.DiagnosticSource, System.Diagnostics.DiagnosticSource", throwOnError: false);

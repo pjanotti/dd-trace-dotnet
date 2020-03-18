@@ -44,12 +44,7 @@ namespace Datadog.Trace.ClrProfiler
         {
             try
             {
-                var tracer = Tracer.Instance;
-
-                if (tracer.Settings.DiagnosticSourceEnabled)
-                {
-                    tracer.StartDiagnosticObservers();
-                }
+                Tracer.Instance.StartDiagnosticObservers();
             }
             catch
             {
