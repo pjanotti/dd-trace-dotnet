@@ -357,12 +357,10 @@ namespace Datadog.Trace
             _agentWriter.WriteTrace(trace);
         }
 
-        internal async Task FlushAsync()
-        {
-            await _agentWriter.FlushAndCloseAsync();
-        }
-
-        internal void StartDiagnosticObservers()
+        /// <summary>
+        /// Creates the default set of <see cref="DiagnosticObserver"/>.
+        /// </summary>
+        public void StartDiagnosticObservers()
         {
             // instead of adding a hard dependency on DiagnosticSource,
             // check if it is available before trying to use it
@@ -377,6 +375,15 @@ namespace Datadog.Trace
                 // don't call this method unless the necessary types are available
                 StartDiagnosticObserversInternal();
             }
+        }
+
+        /// <summary>
+        /// Flushes any pending traces to the Agent.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the flush operation and can be awaited.</returns>
+        public async Task FlushAsync()
+        {
+            await _agentWriter.FlushAndCloseAsync();
         }
 
         internal void StartDiagnosticObserversInternal()
