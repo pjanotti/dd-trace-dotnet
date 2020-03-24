@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>dotnet_metrics</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DogStatsD-CSharp-Client" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.61701" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.52" />
+  </ItemGroup>
+
+</Project>

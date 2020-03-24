@@ -4,8 +4,8 @@ deploy/
 .circleci/
 .git/
 .github/
-.vs/
-.vscode/
+**/.vs/
+**/.vscode/
 packages/
 **/bin/
 **/obj/

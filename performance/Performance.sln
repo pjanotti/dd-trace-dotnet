@@ -3,7 +3,48 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29905.134
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-metrics", "dotnet-metrics\dotnet-metrics.csproj", "{A5691E9D-69B8-4901-9233-C674852C0D10}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore31", "AspNetCore31\AspNetCore31.csproj", "{108C872B-EF1A-4301-A0E9-CE7F97C28FF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "http-requests", "http-requests\http-requests.csproj", "{02205413-3EE8-4619-B7D8-68345148FF46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0AE47042-1878-496F-9301-5FF91AAFE590}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datadog.RuntimeMetrics", "Datadog.RuntimeMetrics\Datadog.RuntimeMetrics.csproj", "{25505336-EC25-4517-AD62-2C7348E87E5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datadog.RuntimeMetrics.Hosting", "Datadog.RuntimeMetrics.Hosting\Datadog.RuntimeMetrics.Hosting.csproj", "{39384C63-2CE2-4575-9ECC-657310148872}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5691E9D-69B8-4901-9233-C674852C0D10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5691E9D-69B8-4901-9233-C674852C0D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5691E9D-69B8-4901-9233-C674852C0D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5691E9D-69B8-4901-9233-C674852C0D10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{108C872B-EF1A-4301-A0E9-CE7F97C28FF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{108C872B-EF1A-4301-A0E9-CE7F97C28FF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{108C872B-EF1A-4301-A0E9-CE7F97C28FF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{108C872B-EF1A-4301-A0E9-CE7F97C28FF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02205413-3EE8-4619-B7D8-68345148FF46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02205413-3EE8-4619-B7D8-68345148FF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02205413-3EE8-4619-B7D8-68345148FF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02205413-3EE8-4619-B7D8-68345148FF46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25505336-EC25-4517-AD62-2C7348E87E5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25505336-EC25-4517-AD62-2C7348E87E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25505336-EC25-4517-AD62-2C7348E87E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25505336-EC25-4517-AD62-2C7348E87E5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39384C63-2CE2-4575-9ECC-657310148872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39384C63-2CE2-4575-9ECC-657310148872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39384C63-2CE2-4575-9ECC-657310148872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39384C63-2CE2-4575-9ECC-657310148872}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

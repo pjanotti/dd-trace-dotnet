@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "dotnet-metrics": {
+      "commandName": "Project"
+    }
+  }
+}

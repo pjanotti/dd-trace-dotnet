@@ -1,0 +1,91 @@
+version: '3'
+services:
+  datadog-agent:
+    image: datadog/agent:latest
+    environment:
+    - DD_API_KEY={DD_API_KEY}
+    - DD_ENV={DD_ENV}
+    - DD_APM_ENABLED=true
+    - DD_APM_NON_LOCAL_TRAFFIC=true
+    - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+  aspnetcore31-none:
+    depends_on:
+    - datadog-agent
+    image: performance-aspnetcore31
+    build:
+      context: ../
+      dockerfile: performance/AspNetCore31/Dockerfile
+    environment:
+    - DD_SERVICE_NAME=Perf-AspNetCore31-None
+    - DD_AGENT_HOST=datadog-agent
+    ports:
+    - "127.0.0.1:60000:80"
+#  aspnetcore31-middleware:
+#    image: performance-aspnetcore31
+#    build:
+#      context: ../
+#    environment:
+#    - DD_SERVICE_NAME=Perf-AspNetCore31-Middleware
+#    - DD_MIDDLEWARE_ENABLED=true
+#    - DD_AGENT_HOST=datadog-agent
+#    ports:
+#    - "127.0.0.1:60001:80"
+  aspnetcore31-diagnosticsource:
+    depends_on:
+    - datadog-agent
+    image: performance-aspnetcore31
+    build:
+      context: ../
+      dockerfile: performance/AspNetCore31/Dockerfile
+    environment:
+    - DD_SERVICE_NAME=Perf-AspNetCore31-DiagnosticSource
+    - DD_DIAGNOSTIC_SOURCE_ENABLED=true
+    - DD_AGENT_HOST=datadog-agent
+    ports:
+    - "127.0.0.1:60002:80"
+#  aspnetcore31-profiler:
+#    depends_on:
+#    - datadog-agent
+#    image: performance-aspnetcore31
+#    build:
+#      context: ../
+#      dockerfile: performance/AspNetCore31/Dockerfile
+#    environment:
+#    - DD_SERVICE_NAME=Perf-AspNetCore31-Profiler
+#    - CORECLR_ENABLE_PROFILING=1
+#    - DD_CLR_DISABLE_OPTIMIZATIONS=false
+#    - DD_AGENT_HOST=datadog-agent
+#    ports:
+#    - "127.0.0.1:60003:80"
+  http-requests-none:
+    depends_on:
+    - aspnetcore31-none
+    - datadog-agent
+    image: http-requests
+    build:
+      context: http-requests/
+    command: "dotnet http-requests.dll http://aspnetcore31-none:80 --rps 100"
+#  http-requests-middleware:
+#    depends_on:
+#    - aspnetcore31-middleware
+#    - datadog-agent
+#    image: http-requests
+#    build:
+#      context: http-requests/
+#    command: "dotnet http-requests.dll http://aspnetcore31-middleware:80 --rps 100"
+  http-requests-diagnosticsource:
+    depends_on:
+    - aspnetcore31-diagnosticsource
+    - datadog-agent
+    image: http-requests
+    build:
+      context: http-requests/
+    command: "dotnet http-requests.dll http://aspnetcore31-diagnosticsource:80 --rps 100"
+#  http-requests-profiler:
+#    depends_on:
+#    - aspnetcore31-profiler
+#    - datadog-agent
+#    image: http-requests
+#    build:
+#      context: http-requests/
+#    command: "dotnet http-requests.dll http://aspnetcore31-profiler:80 --rps 100"
