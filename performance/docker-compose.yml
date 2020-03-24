@@ -40,6 +40,7 @@ services:
     environment:
     - DD_SERVICE_NAME=AspNetCore31-DiagnosticSource
     - DD_DIAGNOSTIC_SOURCE_ENABLED=true
+    - DD_MIDDLEWARE_ENABLED=true
     - DD_AGENT_HOST=datadog-agent
     ports:
     - "127.0.0.1:60002:80"
