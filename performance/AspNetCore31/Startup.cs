@@ -63,7 +63,16 @@ namespace AspNetCore31
                 app.UseDatadogTracer();
             }
 
-            app.Run(async context => { await context.Response.WriteAsync("Hello, world!"); });
+            app.Run(async context =>
+                    {
+                        Tracer tracer = context.RequestServices.GetService<Tracer>();
+
+                        using (Scope scope = tracer.StartActive("manual"))
+                        {
+                            scope.Span.Type = SpanTypes.Custom;
+                            await context.Response.WriteAsync("Hello, world!");
+                        }
+                    });
         }
     }
 }
