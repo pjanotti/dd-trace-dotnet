@@ -16,7 +16,7 @@ services:
       context: ../
       dockerfile: performance/AspNetCore31/Dockerfile
     environment:
-    - DD_SERVICE_NAME=Perf-AspNetCore31-None
+    - DD_SERVICE_NAME=AspNetCore31-None
     - DD_AGENT_HOST=datadog-agent
     ports:
     - "127.0.0.1:60000:80"
@@ -25,7 +25,7 @@ services:
 #    build:
 #      context: ../
 #    environment:
-#    - DD_SERVICE_NAME=Perf-AspNetCore31-Middleware
+#    - DD_SERVICE_NAME=AspNetCore31-Middleware
 #    - DD_MIDDLEWARE_ENABLED=true
 #    - DD_AGENT_HOST=datadog-agent
 #    ports:
@@ -38,7 +38,7 @@ services:
       context: ../
       dockerfile: performance/AspNetCore31/Dockerfile
     environment:
-    - DD_SERVICE_NAME=Perf-AspNetCore31-DiagnosticSource
+    - DD_SERVICE_NAME=AspNetCore31-DiagnosticSource
     - DD_DIAGNOSTIC_SOURCE_ENABLED=true
     - DD_AGENT_HOST=datadog-agent
     ports:
@@ -51,7 +51,7 @@ services:
 #      context: ../
 #      dockerfile: performance/AspNetCore31/Dockerfile
 #    environment:
-#    - DD_SERVICE_NAME=Perf-AspNetCore31-Profiler
+#    - DD_SERVICE_NAME=AspNetCore31-Profiler
 #    - CORECLR_ENABLE_PROFILING=1
 #    - DD_CLR_DISABLE_OPTIMIZATIONS=false
 #    - DD_AGENT_HOST=datadog-agent
