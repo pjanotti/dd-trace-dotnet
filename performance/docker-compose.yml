@@ -64,7 +64,7 @@ services:
     image: http-requests
     build:
       context: http-requests/
-    command: "dotnet http-requests.dll http://aspnetcore31-none:80 --rps 100"
+    command: "dotnet http-requests.dll http://aspnetcore31-none:80 --rps ${RPS}"
 #  http-requests-middleware:
 #    depends_on:
 #    - aspnetcore31-middleware
@@ -72,7 +72,7 @@ services:
 #    image: http-requests
 #    build:
 #      context: http-requests/
-#    command: "dotnet http-requests.dll http://aspnetcore31-middleware:80 --rps 100"
+#    command: "dotnet http-requests.dll http://aspnetcore31-middleware:80 --rps ${RPS}"
   http-requests-diagnosticsource:
     depends_on:
     - aspnetcore31-diagnosticsource
@@ -80,7 +80,7 @@ services:
     image: http-requests
     build:
       context: http-requests/
-    command: "dotnet http-requests.dll http://aspnetcore31-diagnosticsource:80 --rps 100"
+    command: "dotnet http-requests.dll http://aspnetcore31-diagnosticsource:80 --rps ${RPS}"
 #  http-requests-profiler:
 #    depends_on:
 #    - aspnetcore31-profiler
@@ -88,4 +88,4 @@ services:
 #    image: http-requests
 #    build:
 #      context: http-requests/
-#    command: "dotnet http-requests.dll http://aspnetcore31-profiler:80 --rps 100"
+#    command: "dotnet http-requests.dll http://aspnetcore31-profiler:80 --rps ${RPS}"
