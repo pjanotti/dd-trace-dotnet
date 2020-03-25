@@ -16,16 +16,15 @@ namespace dotnet_metrics
             Console.WriteLine($"Subscribing to counters on process {processId}.");
             Console.WriteLine("Press CTRL+C to exit...");
 
-            var statsd = new DogStatsdService();
+            var statsdUdp = new StatsdUDP("localhost", StatsdConfig.DefaultStatsdPort);
+            var statsd = new Statsd(statsdUdp, "dotnet-counters-");
+            var statsdShipper = new CounterDataStatsdShipper(statsd);
 
-            statsd.Configure(new StatsdConfig
-                             {
-                                 StatsdServerName = "localhost",
-                                 Prefix = "dotnet-counters-",
-                             });
+            var consoleShipper = new ConsoleShipper();
 
-            var counterSink = new StatsdCounterSink(statsd);
-            var monitor = new CounterMonitor(processId, args[1], counterSink);
+            var monitor = new CounterMonitor(processId, args[1]);
+            monitor.Subscribe(statsdShipper);
+            monitor.Subscribe(consoleShipper);
             monitor.Start();
         }
     }

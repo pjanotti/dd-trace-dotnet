@@ -1,6 +1,6 @@
 ﻿namespace dotnet_metrics
 {
-    public struct CounterEventArgs
+    public struct CounterData
     {
         public int ProcessId;
         public string ProcessName;
@@ -9,7 +9,7 @@
         public CounterType Type;
         public double Value;
 
-        public CounterEventArgs(int pid, string processName, string counterName, string counterDisplayName, CounterType type, double value)
+        public CounterData(int pid, string processName, string counterName, string counterDisplayName, CounterType type, double value)
         {
             ProcessId = pid;
             CounterName = counterName;
