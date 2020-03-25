@@ -8,85 +8,75 @@ services:
     - DD_APM_ENABLED=true
     - DD_APM_NON_LOCAL_TRAFFIC=true
     - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
-  aspnetcore31-none:
+  app-none:
     depends_on:
     - datadog-agent
-    image: performance-aspnetcore31
+    image: app-none
     build:
       context: ../
       dockerfile: performance/AspNetCore31/Dockerfile
+      args:
+      - DD_TRACER_VERSION=project
     environment:
-    - DD_SERVICE_NAME=AspNetCore31-None
+    - DD_SERVICE_NAME=app-none
     - DD_AGENT_HOST=datadog-agent
+    - DD_TRACER_VERSION=project
     ports:
     - "127.0.0.1:60000:80"
-#  aspnetcore31-middleware:
-#    image: performance-aspnetcore31
-#    build:
-#      context: ../
-#    environment:
-#    - DD_SERVICE_NAME=AspNetCore31-Middleware
-#    - DD_MIDDLEWARE_ENABLED=true
-#    - DD_AGENT_HOST=datadog-agent
-#    ports:
-#    - "127.0.0.1:60001:80"
-  aspnetcore31-diagnosticsource:
+  app-nuget:
     depends_on:
     - datadog-agent
-    image: performance-aspnetcore31
+    image: app-no-profiler-${TRACER_NUGET_VERSION}
     build:
       context: ../
       dockerfile: performance/AspNetCore31/Dockerfile
+      args:
+      - DD_TRACER_VERSION=${TRACER_NUGET_VERSION}
     environment:
-    - DD_SERVICE_NAME=AspNetCore31-DiagnosticSource
+    - DD_SERVICE_NAME=app-no-profiler-${TRACER_NUGET_VERSION}
+    - DD_AGENT_HOST=datadog-agent
+    - DD_TRACER_VERSION=${TRACER_NUGET_VERSION}
     - DD_DIAGNOSTIC_SOURCE_ENABLED=true
     - DD_MIDDLEWARE_ENABLED=true
+    ports:
+    - "127.0.0.1:60001:80"
+  app-project:
+    depends_on:
+    - datadog-agent
+    image: app-no-profiler-latest
+    build:
+      context: ../
+      dockerfile: performance/AspNetCore31/Dockerfile
+      args:
+      - DD_TRACER_VERSION=project
+    environment:
+    - DD_SERVICE_NAME=app-no-profiler-latest
     - DD_AGENT_HOST=datadog-agent
+    - DD_TRACER_VERSION=project
+    - DD_DIAGNOSTIC_SOURCE_ENABLED=true
+    - DD_MIDDLEWARE_ENABLED=true
     ports:
     - "127.0.0.1:60002:80"
-#  aspnetcore31-profiler:
+#  app-profiler:
 #    depends_on:
 #    - datadog-agent
-#    image: performance-aspnetcore31
+#    image: app-with-profiler
 #    build:
 #      context: ../
 #      dockerfile: performance/AspNetCore31/Dockerfile
 #    environment:
-#    - DD_SERVICE_NAME=AspNetCore31-Profiler
-#    - CORECLR_ENABLE_PROFILING=1
-#    - DD_CLR_DISABLE_OPTIMIZATIONS=false
+#    - DD_SERVICE_NAME=app-with-profiler
 #    - DD_AGENT_HOST=datadog-agent
+#    - DD_MIDDLEWARE_ENABLED=true
+#    - CORECLR_ENABLE_PROFILING=1
 #    ports:
 #    - "127.0.0.1:60003:80"
-  http-requests-none:
-    depends_on:
-    - aspnetcore31-none
-    - datadog-agent
-    image: http-requests
-    build:
-      context: http-requests/
-    command: "dotnet http-requests.dll http://aspnetcore31-none:80 --rps ${RPS}"
-#  http-requests-middleware:
+#  http-requests:
 #    depends_on:
-#    - aspnetcore31-middleware
-#    - datadog-agent
+#    - app-none
+#    - app-nuget
+#    - app-project
 #    image: http-requests
 #    build:
 #      context: http-requests/
-#    command: "dotnet http-requests.dll http://aspnetcore31-middleware:80 --rps ${RPS}"
-  http-requests-diagnosticsource:
-    depends_on:
-    - aspnetcore31-diagnosticsource
-    - datadog-agent
-    image: http-requests
-    build:
-      context: http-requests/
-    command: "dotnet http-requests.dll http://aspnetcore31-diagnosticsource:80 --rps ${RPS}"
-#  http-requests-profiler:
-#    depends_on:
-#    - aspnetcore31-profiler
-#    - datadog-agent
-#    image: http-requests
-#    build:
-#      context: http-requests/
-#    command: "dotnet http-requests.dll http://aspnetcore31-profiler:80 --rps ${RPS}"
+#    command: "dotnet http-requests.dll http://app-none:80 http://app-nuget:80 http://app-project:80 --rps ${RPS}"
