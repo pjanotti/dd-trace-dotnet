@@ -1,30 +1,18 @@
 using System;
 using System.Globalization;
-using System.Reflection;
-using Datadog.RuntimeMetrics;
-using Datadog.RuntimeMetrics.Hosting;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using StatsdClient;
 
-namespace AspNetCore31.Extensions
+namespace Datadog.RuntimeMetrics.Hosting
 {
     public static class ApplicationBuilderExtensions
     {
-        public static IApplicationBuilder UseDatadogDiagnosticSource(this IApplicationBuilder app)
-        {
-            Tracer tracer = app.ApplicationServices.GetService<Tracer>();
-
-            tracer.GetType()
-                  .GetMethod("StartDiagnosticObservers", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                 ?.Invoke(tracer, null);
-
-            return app;
-        }
-
-        public static IApplicationBuilder UseDatadogTracer(this IApplicationBuilder app)
+        /// <summary>
+        /// Adds Datadog tracing middleware.
+        /// </summary>
+        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app)
         {
             app.Use(async (context, next) =>
                     {
