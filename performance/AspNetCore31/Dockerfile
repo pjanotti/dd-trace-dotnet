@@ -12,7 +12,8 @@ COPY performance/Datadog.RuntimeMetrics/*.csproj performance/Datadog.RuntimeMetr
 COPY performance/Datadog.RuntimeMetrics.Hosting/*.csproj performance/Datadog.RuntimeMetrics.Hosting/
 COPY performance/AspNetCore31/*.csproj performance/AspNetCore31/
 
-RUN dotnet restore performance/AspNetCore31/
+ARG DD_TRACER_VERSION
+RUN dotnet restore performance/AspNetCore31/ -p:DatadogTracerVersion=$DD_TRACER_VERSION
 
 # copy everything else and build app
 COPY src/Datadog.Trace/ src/Datadog.Trace/
@@ -23,17 +24,19 @@ COPY Datadog.Trace.snk Datadog.Trace.snk
 COPY stylecop.json stylecop.json
 COPY GlobalSuppressions.cs GlobalSuppressions.cs
 COPY src/GlobalSuppressions.cs src/GlobalSuppressions.cs
-RUN dotnet publish performance/AspNetCore31/ -c release -o /app --no-restore
+
+ARG DD_TRACER_VERSION
+RUN dotnet publish performance/AspNetCore31/ -c release -o /app -p:DatadogTracerVersion=$DD_TRACER_VERSION --no-restore
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
 COPY --from=build /app ./
 
-ARG TRACER_VERSION=1.15.0
-RUN mkdir -p /opt/datadog
-RUN mkdir -p /var/log/datadog/dotnet
-RUN curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v$TRACER_VERSION/datadog-dotnet-apm-$TRACER_VERSION.tar.gz | tar xzf - -C /opt/datadog
+#ARG DD_TRACER_VERSION=1.15.0
+#RUN mkdir -p /opt/datadog
+#RUN mkdir -p /var/log/datadog/dotnet
+#RUN curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v$DD_TRACER_VERSION/datadog-dotnet-apm-$DD_TRACER_VERSION.tar.gz | tar xzf - -C /opt/datadog
 
 ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}

@@ -1,5 +1,4 @@
-using System.Reflection;
-using AspNetCore31.Extensions;
+using Datadog.RuntimeMetrics.Hosting;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,11 +15,8 @@ namespace AspNetCore31
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            Tracer tracer = Tracer.Instance;
-            string tracerVersion = tracer.GetType().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-
-            services.AddDatadogTracing(tracer);
-            services.AddDatadogRuntimeMetrics(tracer.DefaultServiceName, tracerVersion);
+            services.AddDatadogTracing(Tracer.Instance);
+            services.AddDatadogRuntimeMetrics();
 
             /*
             services.AddSingleton<StatsdCounterSink>();
@@ -53,14 +49,10 @@ namespace AspNetCore31
                 app.UseDeveloperExceptionPage();
             }
 
-            if (configuration.GetValue<bool>("DD_DIAGNOSTIC_SOURCE_ENABLED"))
+            if (configuration.GetValue("DD_MIDDLEWARE_ENABLED", defaultValue: false))
             {
-                app.UseDatadogDiagnosticSource();
-            }
-
-            if (configuration.GetValue<bool>("DD_MIDDLEWARE_ENABLED"))
-            {
-                app.UseDatadogTracer();
+                // if enabled, create a span for each request using middleware
+                app.UseDatadogTracing();
             }
 
             app.Run(async context => await context.Response.WriteAsync("Hello, world!"));
