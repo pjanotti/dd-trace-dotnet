@@ -5,13 +5,13 @@ using Microsoft.Extensions.Hosting;
 namespace Datadog.RuntimeMetrics.Hosting
 {
     /// <summary>
-    /// Wrapper for <see cref="GcMetricsSource"/> that implements <see cref="IHostedService"/>.
+    /// Wrapper for <see cref="GcMetricsSource"/> that implements <see cref="IBackgroundService"/>.
     /// </summary>
     public class GcMetricsHostedService : IHostedService
     {
-        private readonly GcMetricsSource _service;
+        private readonly IMetricsSourceBackgroundService _service;
 
-        public GcMetricsHostedService(GcMetricsSource service)
+        public GcMetricsHostedService(IMetricsSourceBackgroundService service)
         {
             _service = service;
         }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class GcMetricsSource : BackgroundService, IMetricsSource
+    public class GcMetricsSource : BackgroundService, IMetricsSourceBackgroundService
     {
         private readonly List<IObserver<IEnumerable<MetricValue>>> _observers = new List<IObserver<IEnumerable<MetricValue>>>();
         private readonly TimeSpan _period = TimeSpan.FromSeconds(1);

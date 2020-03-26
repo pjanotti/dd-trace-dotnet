@@ -98,9 +98,10 @@ namespace Datadog.RuntimeMetrics.Hosting
             services.AddOptions();
             services.AddDogStatsd();
 
-            services.TryAddTransient<IMetricsProvider<GcMetrics>, MetricsGcProvider>();
-            services.TryAddTransient<IMetricsSource, GcMetricsSource>();
+            services.TryAddTransient<IMetricsProvider<GcMetrics>, GcMetricsProvider>();
+            services.TryAddSingleton<IMetricsSourceBackgroundService, GcMetricsSource>();
             services.TryAddTransient<IMetricsSubscriber, StatsdMetricsSubscriberWrapper>();
+
             services.AddHostedService<GcMetricsHostedService>();
             return services;
         }

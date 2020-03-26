@@ -5,7 +5,7 @@ namespace Datadog.RuntimeMetrics
 {
     // https://github.com/sebastienros/memoryleak/blob/master/src/MemoryLeak/MemoryLeak/Controllers/DiagnosticsController.cs
 
-    public class MetricsGcProvider : IDisposable, IMetricsProvider<GcMetrics>
+    public class GcMetricsProvider : IDisposable, IMetricsProvider<GcMetrics>
     {
         private readonly Process _process = Process.GetCurrentProcess();
 
