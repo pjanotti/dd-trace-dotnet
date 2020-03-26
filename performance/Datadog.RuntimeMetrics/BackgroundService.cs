@@ -8,8 +8,8 @@ namespace Datadog.RuntimeMetrics
 
     public abstract class BackgroundService : IDisposable
     {
-        private Task _executingTask;
-        private CancellationTokenSource _stoppingCts;
+        private Task? _executingTask;
+        private CancellationTokenSource? _stoppingCts;
 
         /// <summary>
         /// This method is called when the <see cref="IHostedService"/> starts. The implementation should return a task that represents
@@ -38,7 +38,11 @@ namespace Datadog.RuntimeMetrics
             }
 
             // Otherwise it's running
+#if NET451
+            return Task.FromResult<object?>(null);
+#else
             return Task.CompletedTask;
+#endif
         }
 
         /// <summary>
@@ -56,7 +60,7 @@ namespace Datadog.RuntimeMetrics
             try
             {
                 // Signal cancellation to the executing method
-                _stoppingCts.Cancel();
+                _stoppingCts?.Cancel();
             }
             finally
             {

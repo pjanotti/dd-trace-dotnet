@@ -11,7 +11,7 @@ namespace Datadog.RuntimeMetrics.Hosting
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer tracer = null)
+        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer? tracer = null)
         {
             services.AddSingleton(provider =>
                                   {
@@ -39,11 +39,9 @@ namespace Datadog.RuntimeMetrics.Hosting
             return services;
         }
 
-        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, IEnumerable<string> customTags = null)
+        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, )
         {
-            services.AddTransient<IRandomGenerator, RandomGenerator>();
-
-            services.AddTransient<IStopWatchFactory, StopWatchFactory>();
+            services.AddTransient<IRuntimeMetricsCollector, RuntimeMetricsGcCollector>();
 
             services.AddTransient<IStatsdUDP>(provider =>
                                               {
@@ -96,22 +94,25 @@ namespace Datadog.RuntimeMetrics.Hosting
                                                return statsd;
                                            });
 
-            services.AddTransient<IRuntimeMetricsCollector, RuntimeMetricsCollector>();
 
-            services.AddTransient<IObserver<RuntimeMetrics>, StatsdRuntimeMetricsObserver>();
+            services.AddTransient<IObserver<IEnumerable<RuntimeMetricValue>>>(provider =>
+                                                                              {
+                                                                                  var observer = new StatsdRuntimeMetricsObserver();
+                                                                                  return observer;
+                                                                              });
 
             services.AddTransient(provider =>
                                   {
                                       var metricsCollector = provider.GetService<IRuntimeMetricsCollector>();
-                                      var service = new RuntimeMetricsService(metricsCollector);
+                                      var service = new RuntimeMetricsGcService(metricsCollector);
 
-                                      var observer = provider.GetService<IObserver<RuntimeMetrics>>();
+                                      var observer = provider.GetService<IObserver<GcMetrics>>();
 
                                       service.Subscribe(observer);
                                       return service;
                                   });
 
-            services.AddHostedService<RuntimeMetricsHostedService>();
+            services.AddHostedService<RuntimeMetricsGcHostedService>();
             return services;
         }
     }

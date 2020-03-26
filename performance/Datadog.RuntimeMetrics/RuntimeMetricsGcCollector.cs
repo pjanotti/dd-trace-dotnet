@@ -5,7 +5,7 @@ namespace Datadog.RuntimeMetrics
 {
     // https://github.com/sebastienros/memoryleak/blob/master/src/MemoryLeak/MemoryLeak/Controllers/DiagnosticsController.cs
 
-    public class RuntimeMetricsCollector : IRuntimeMetricsCollector, IDisposable
+    public class RuntimeMetricsGcCollector : IDisposable, IRuntimeMetricsCollector
     {
         private readonly Process _process = Process.GetCurrentProcess();
 
@@ -13,7 +13,7 @@ namespace Datadog.RuntimeMetrics
         private DateTime _lastMonitorTime = DateTime.UtcNow;
         private double _cpu;
 
-        public RuntimeMetrics GetRuntimeMetrics()
+        public GcMetrics GetRuntimeMetrics()
         {
             DateTime now = DateTime.UtcNow;
             _process.Refresh();
@@ -27,15 +27,15 @@ namespace Datadog.RuntimeMetrics
             _lastMonitorTime = now;
             _oldCpuTime = newCpuTime;
 
-            var metrics = new RuntimeMetrics
+            var metrics = new GcMetrics
                           {
                               Allocated = GC.GetTotalMemory(false),
                               WorkingSet = _process.WorkingSet64,
                               PrivateBytes = _process.PrivateMemorySize64,
-                              Gen0 = GC.CollectionCount(0),
-                              Gen1 = GC.CollectionCount(1),
-                              Gen2 = GC.CollectionCount(2),
-                              Cpu = _cpu
+                              GcCountGen0 = GC.CollectionCount(0),
+                              GcCountGen1 = GC.CollectionCount(1),
+                              GcCountGen2 = GC.CollectionCount(2),
+                              CpuUsage = _cpu
                           };
 
             return metrics;

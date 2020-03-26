@@ -71,12 +71,12 @@ services:
 #    - CORECLR_ENABLE_PROFILING=1
 #    ports:
 #    - "127.0.0.1:60003:80"
-#  http-requests:
-#    depends_on:
-#    - app-none
-#    - app-nuget
-#    - app-project
-#    image: http-requests
-#    build:
-#      context: http-requests/
-#    command: "dotnet http-requests.dll http://app-none:80 http://app-nuget:80 http://app-project:80 --rps ${RPS}"
+  http-requests:
+    depends_on:
+    - app-none
+    - app-nuget
+    - app-project
+    image: http-requests
+    build:
+      context: http-requests/
+    command: "dotnet http-requests.dll http://app-none:80 http://app-nuget:80 http://app-project:80 --rps ${RPS}"

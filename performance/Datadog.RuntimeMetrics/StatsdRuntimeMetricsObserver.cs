@@ -1,50 +1,61 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using StatsdClient;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class StatsdRuntimeMetricsObserver : IObserver<RuntimeMetrics>
+    public class StatsdRuntimeMetricsObserver : IObserver<IEnumerable<RuntimeMetricValue>>, IDisposable
     {
-        private const double SampleRate = 1d;
+        private readonly IStatsdUDP _statsdUdp;
+        private readonly double? _sampleRate;
+        private readonly string[]? _tags;
 
-        private readonly IStatsd _statsd;
-
-        private int _lastGen0Count;
-        private int _lastGen1Count;
-        private int _lastGen2Count;
-
-        public StatsdRuntimeMetricsObserver(IStatsd statsd)
+        public StatsdRuntimeMetricsObserver(IStatsdUDP statsd, string[]? tags, double? sampleRate)
         {
-            _statsd = statsd ?? throw new ArgumentNullException(nameof(statsd));
+            _statsdUdp = statsd ?? throw new ArgumentNullException(nameof(statsd));
+            _tags = tags;
+            _sampleRate = sampleRate;
         }
 
         public void OnCompleted()
         {
+            (_statsdUdp as IDisposable)?.Dispose();
         }
 
         public void OnError(Exception error)
         {
         }
 
-        public void OnNext(RuntimeMetrics value)
+        public void OnNext(IEnumerable<RuntimeMetricValue> payloads)
         {
-            int gen0Diff = value.Gen0 - _lastGen0Count;
-            _lastGen0Count = value.Gen0;
+            var commandBuilder = new StringBuilder();
 
-            int gen1Diff = value.Gen1 - _lastGen1Count;
-            _lastGen1Count = value.Gen1;
+            foreach (RuntimeMetricValue payload in payloads)
+            {
+                commandBuilder.AppendFormat(CultureInfo.InvariantCulture, "{0}:{1}|{2}", payload.Metric.Name, payload.Value, payload.Metric.Type);
 
-            int gen2Diff = value.Gen2 - _lastGen2Count;
-            _lastGen2Count = value.Gen2;
+                if (_sampleRate != null)
+                {
+                    commandBuilder.AppendFormat(CultureInfo.InvariantCulture, "|@{0}", _sampleRate);
+                }
 
-            _statsd.Add<Statsd.Gauge, long>("dotnet_counters.gc_heap_size", value.Allocated, SampleRate);
-            _statsd.Add<Statsd.Gauge, long>("dotnet_counters.working_set", value.WorkingSet, SampleRate);
-            _statsd.Add<Statsd.Gauge, long>("dotnet_counters.private_bytes", value.PrivateBytes, SampleRate);
-            _statsd.Add<Statsd.Counting, int>("dotnet_counters.gen_0_gc_count", gen0Diff, SampleRate);
-            _statsd.Add<Statsd.Counting, int>("dotnet_counters.gen_1_gc_count", gen1Diff, SampleRate);
-            _statsd.Add<Statsd.Counting, int>("dotnet_counters.gen_2_gc_count", gen2Diff, SampleRate);
-            _statsd.Add<Statsd.Gauge, double>("dotnet_counters.cpu-usage", value.Cpu, SampleRate);
-            _statsd.Send();
+                if (_tags?.Length > 0)
+                {
+                    string joinedTags = string.Join(",", _tags);
+                    commandBuilder.AppendFormat(CultureInfo.InvariantCulture, "|#{0}", joinedTags);
+                }
+
+                commandBuilder.AppendLine();
+            }
+
+            _statsdUdp.SendAsync(commandBuilder.ToString());
+        }
+
+        public void Dispose()
+        {
+            (_statsdUdp as IDisposable)?.Dispose();
         }
     }
 }

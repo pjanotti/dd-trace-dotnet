@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class RuntimeMetricsService : BackgroundService, IObservable<RuntimeMetrics>
+    public class RuntimeMetricsGcService : BackgroundService, IObservable<IEnumerable<RuntimeMetricValue>>
     {
-        private readonly List<IObserver<RuntimeMetrics>> _observers = new List<IObserver<RuntimeMetrics>>();
+        private readonly List<IObserver<IEnumerable<RuntimeMetricValue>>> _observers = new List<IObserver<IEnumerable<RuntimeMetricValue>>>();
         private readonly TimeSpan _period = TimeSpan.FromSeconds(1);
         private readonly IRuntimeMetricsCollector _collector;
 
-        public RuntimeMetricsService(IRuntimeMetricsCollector collector)
+        public RuntimeMetricsGcService(IRuntimeMetricsCollector collector)
         {
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
         }
@@ -20,13 +20,23 @@ namespace Datadog.RuntimeMetrics
         {
             return Task.Factory.StartNew(() =>
                                          {
+                                             var values = new RuntimeMetricValue[7];
+
                                              while (!stoppingToken.IsCancellationRequested)
                                              {
-                                                 RuntimeMetrics metrics = _collector.GetRuntimeMetrics();
+                                                 GcMetrics metrics = _collector.GetRuntimeMetrics();
 
-                                                 foreach (IObserver<RuntimeMetrics> observer in _observers)
+                                                 values[0] = new RuntimeMetricValue(RuntimeMetric.GcHeapSize, metrics.Allocated);
+                                                 values[1] = new RuntimeMetricValue(RuntimeMetric.WorkingSet, metrics.WorkingSet);
+                                                 values[2] = new RuntimeMetricValue(RuntimeMetric.PrivateBytes, metrics.PrivateBytes);
+                                                 values[3] = new RuntimeMetricValue(RuntimeMetric.GcCountGen0, metrics.GcCountGen0);
+                                                 values[4] = new RuntimeMetricValue(RuntimeMetric.GcCountGen1, metrics.GcCountGen1);
+                                                 values[5] = new RuntimeMetricValue(RuntimeMetric.GcCountGen2, metrics.GcCountGen2);
+                                                 values[6] = new RuntimeMetricValue(RuntimeMetric.CpuUsage, metrics.CpuUsage);
+
+                                                 foreach (IObserver<IEnumerable<RuntimeMetricValue>> observer in _observers)
                                                  {
-                                                     observer.OnNext(metrics);
+                                                     observer.OnNext(values);
                                                  }
 
                                                  if (!stoppingToken.IsCancellationRequested)
@@ -41,7 +51,7 @@ namespace Datadog.RuntimeMetrics
         }
 
 
-        public IDisposable Subscribe(IObserver<RuntimeMetrics> observer)
+        public IDisposable Subscribe(IObserver<IEnumerable<RuntimeMetricValue>> observer)
         {
             _observers.Add(observer);
             return new Unsubscriber(_observers, observer);
@@ -49,10 +59,10 @@ namespace Datadog.RuntimeMetrics
 
         private class Unsubscriber : IDisposable
         {
-            private readonly List<IObserver<RuntimeMetrics>> _observers;
-            private readonly IObserver<RuntimeMetrics> _observer;
+            private readonly List<IObserver<IEnumerable<RuntimeMetricValue>>> _observers;
+            private readonly IObserver<IEnumerable<RuntimeMetricValue>> _observer;
 
-            public Unsubscriber(List<IObserver<RuntimeMetrics>> observers, IObserver<RuntimeMetrics> observer)
+            public Unsubscriber(List<IObserver<IEnumerable<RuntimeMetricValue>>> observers, IObserver<IEnumerable<RuntimeMetricValue>> observer)
             {
                 _observers = observers ?? throw new ArgumentNullException(nameof(observers));
                 _observer = observer ?? throw new ArgumentNullException(nameof(observer));
