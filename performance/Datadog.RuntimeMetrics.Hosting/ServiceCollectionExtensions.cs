@@ -1,118 +1,124 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Datadog.Trace;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StatsdClient;
 
 namespace Datadog.RuntimeMetrics.Hosting
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer? tracer = null)
+        public static IServiceCollection AddDatadogTracing(this IServiceCollection services)
         {
-            services.AddSingleton(provider =>
-                                  {
-                                      if (tracer == null)
-                                      {
-                                          tracer = Tracer.Instance;
-                                      }
-                                      else
-                                      {
-                                          Tracer.Instance = tracer;
-                                      }
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
-                                      IConfiguration configuration = provider.GetService<IConfiguration>();
-
-                                      if (configuration.GetValue("DD_DIAGNOSTIC_SOURCE_ENABLED", defaultValue: false))
-                                      {
-                                          tracer.GetType()
-                                                .GetMethod("StartDiagnosticObservers", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                                               ?.Invoke(tracer, null);
-                                      }
-
-                                      return tracer;
-                                  });
-
+            services.AddDatadogTracing(Tracer.Instance);
             return services;
         }
 
-        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, )
+        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer tracer)
         {
-            services.AddTransient<IRuntimeMetricsCollector, RuntimeMetricsGcCollector>();
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
-            services.AddTransient<IStatsdUDP>(provider =>
-                                              {
-                                                  IConfiguration configuration = provider.GetService<IConfiguration>();
-                                                  string host = configuration.GetValue("DD_AGENT_HOST", "localhost");
-                                                  int port = configuration.GetValue("DD_DOGSTATSD_PORT", 8125);
-                                                  return new StatsdUDP(host, port);
-                                              });
+            if (tracer == null)
+            {
+                throw new ArgumentNullException(nameof(tracer));
+            }
 
-            services.AddSingleton<IStatsd>(provider =>
-                                           {
-                                               IConfiguration configuration = provider.GetService<IConfiguration>();
-                                               bool diagnosticSourceEnabled = configuration.GetValue("DD_DIAGNOSTIC_SOURCE_ENABLED", false);
-                                               bool middlewareEnabled = configuration.GetValue("DD_MIDDLEWARE_ENABLED", false);
-                                               string tracerVersion = configuration.GetValue("DD_TRACER_VERSION", "latest");
+            if (!ReferenceEquals(Tracer.Instance, tracer))
+            {
+                Tracer.Instance = tracer;
+            }
 
-                                               Tracer tracer = provider.GetService<Tracer>();
+            services.TryAddSingleton(tracer);
+            return services;
+        }
 
-                                               var internalTags = new List<string>
-                                                                  {
-                                                                      $"service_name:{tracer.DefaultServiceName}"
-                                                                  };
+        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Action<TracingOptions> setupAction)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
-                                               if (diagnosticSourceEnabled)
-                                               {
-                                                   internalTags.Add("tracer_mode:diagnostic-source");
-                                                   internalTags.Add($"tracer_version:{tracerVersion}");
-                                               }
-                                               else if (middlewareEnabled)
-                                               {
-                                                   internalTags.Add("tracer_mode:middleware");
-                                                   internalTags.Add($"tracer_version:{tracerVersion}");
-                                               }
-                                               else
-                                               {
-                                                   internalTags.Add("tracer_mode:none");
-                                                   internalTags.Add("tracer_version:none");
-                                               }
+            if (setupAction == null)
+            {
+                throw new ArgumentNullException(nameof(setupAction));
+            }
 
-                                               if (customTags == null)
-                                               {
-                                                   customTags = Enumerable.Empty<string>();
-                                               }
+            services.AddOptions();
+            services.AddDatadogTracing();
+            services.Configure(setupAction);
+            return services;
+        }
 
-                                               var statsd = new Statsd(provider.GetService<IStatsdUDP>(),
-                                                                       provider.GetService<IRandomGenerator>(),
-                                                                       provider.GetService<IStopWatchFactory>(),
-                                                                       prefix: string.Empty,
-                                                                       internalTags.Concat(customTags).ToArray());
-                                               return statsd;
-                                           });
+        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer tracer, Action<TracingOptions> setupAction)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
+            if (tracer == null)
+            {
+                throw new ArgumentNullException(nameof(tracer));
+            }
 
-            services.AddTransient<IObserver<IEnumerable<RuntimeMetricValue>>>(provider =>
-                                                                              {
-                                                                                  var observer = new StatsdRuntimeMetricsObserver();
-                                                                                  return observer;
-                                                                              });
+            services.AddOptions();
+            services.AddDatadogTracing(tracer);
+            services.Configure(setupAction);
+            return services;
+        }
 
-            services.AddTransient(provider =>
-                                  {
-                                      var metricsCollector = provider.GetService<IRuntimeMetricsCollector>();
-                                      var service = new RuntimeMetricsGcService(metricsCollector);
+        public static IServiceCollection AddDogStatsd(this IServiceCollection services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
-                                      var observer = provider.GetService<IObserver<GcMetrics>>();
+            services.AddOptions();
+            services.TryAddTransient<IStatsdUDP, StatsdUdpWrapper>();
+            return services;
+        }
 
-                                      service.Subscribe(observer);
-                                      return service;
-                                  });
+        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
 
-            services.AddHostedService<RuntimeMetricsGcHostedService>();
+            services.AddOptions();
+            services.AddDogStatsd();
+
+            services.TryAddTransient<IMetricsProvider<GcMetrics>, MetricsGcProvider>();
+            services.TryAddTransient<IMetricsSource, GcMetricsSource>();
+            services.TryAddTransient<IMetricsSubscriber, StatsdMetricsSubscriberWrapper>();
+            services.AddHostedService<GcMetricsHostedService>();
+            return services;
+        }
+
+        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, Action<StatsdOptions> setupAction)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (setupAction == null)
+            {
+                throw new ArgumentNullException(nameof(setupAction));
+            }
+
+            services.AddDatadogRuntimeMetrics();
+            services.Configure(setupAction);
             return services;
         }
     }

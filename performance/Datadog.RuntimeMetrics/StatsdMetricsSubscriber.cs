@@ -6,13 +6,13 @@ using StatsdClient;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class StatsdRuntimeMetricsObserver : IObserver<IEnumerable<RuntimeMetricValue>>, IDisposable
+    public class StatsdMetricsSubscriber : IMetricsSubscriber, IDisposable
     {
         private readonly IStatsdUDP _statsdUdp;
         private readonly double? _sampleRate;
         private readonly string[]? _tags;
 
-        public StatsdRuntimeMetricsObserver(IStatsdUDP statsd, string[]? tags, double? sampleRate)
+        public StatsdMetricsSubscriber(IStatsdUDP statsd, string[]? tags, double? sampleRate)
         {
             _statsdUdp = statsd ?? throw new ArgumentNullException(nameof(statsd));
             _tags = tags;
@@ -28,11 +28,11 @@ namespace Datadog.RuntimeMetrics
         {
         }
 
-        public void OnNext(IEnumerable<RuntimeMetricValue> payloads)
+        public void OnNext(IEnumerable<MetricValue> payloads)
         {
             var commandBuilder = new StringBuilder();
 
-            foreach (RuntimeMetricValue payload in payloads)
+            foreach (MetricValue payload in payloads)
             {
                 commandBuilder.AppendFormat(CultureInfo.InvariantCulture, "{0}:{1}|{2}", payload.Metric.Name, payload.Value, payload.Metric.Type);
 

@@ -1,11 +1,11 @@
 namespace Datadog.RuntimeMetrics
 {
-    public struct RuntimeMetricValue
+    public struct MetricValue
     {
-        public RuntimeMetric Metric;
+        public Metric Metric;
         public double Value;
 
-        public RuntimeMetricValue(RuntimeMetric metric, double value)
+        public MetricValue(Metric metric, double value)
         {
             Metric = metric;
             Value = value;

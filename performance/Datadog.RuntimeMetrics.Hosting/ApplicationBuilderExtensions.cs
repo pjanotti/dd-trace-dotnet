@@ -3,7 +3,7 @@ using System.Globalization;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Datadog.RuntimeMetrics.Hosting
 {
@@ -12,7 +12,7 @@ namespace Datadog.RuntimeMetrics.Hosting
         /// <summary>
         /// Adds Datadog tracing middleware.
         /// </summary>
-        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app)
+        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app, Tracer tracer)
         {
             app.Use(async (context, next) =>
                     {
@@ -21,8 +21,6 @@ namespace Datadog.RuntimeMetrics.Hosting
                         string url = GetUrl(request);
                         string resourceUrl = new Uri(url).AbsolutePath.ToLowerInvariant();
                         string resourceName = $"{httpMethod} {resourceUrl}";
-
-                        Tracer tracer = app.ApplicationServices.GetService<Tracer>();
 
                         using (Scope scope = tracer.StartActive("aspnet_core.middleware"))
                         {
@@ -35,6 +33,7 @@ namespace Datadog.RuntimeMetrics.Hosting
                             span.SetTag(Tags.HttpUrl, url);
                             span.SetTag(Tags.Language, "dotnet");
 
+                            // call the next middleware in the chain
                             await next.Invoke();
 
                             span.SetTag(Tags.HttpStatusCode, context.Response.StatusCode.ToString(CultureInfo.InvariantCulture));
