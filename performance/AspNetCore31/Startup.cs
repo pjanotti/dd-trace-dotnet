@@ -25,11 +25,17 @@ namespace AspNetCore31
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            // configure options from default sources (e.g. env vars)
+            services.Configure<TracingOptions>(Configuration);
+            services.Configure<StatsdOptions>(Configuration);
+
             // register the global Tracer
             services.AddDatadogTracing();
 
             // register the services required to collect metrics and send them to dogstatsd
             services.AddDatadogRuntimeMetrics();
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

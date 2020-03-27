@@ -19,7 +19,7 @@ namespace Datadog.RuntimeMetrics.Hosting
                 throw new ArgumentNullException(nameof(options));
             }
 
-            string host = options.Value.Agent_Host;
+            string host = options.Value.DD_AGENT_HOST;
 
             if (host.StartsWith(UnixDomainSocketPrefix))
             {
@@ -38,7 +38,7 @@ namespace Datadog.RuntimeMetrics.Hosting
             }
             else
             {
-                int port = options.Value.Dogstatsd_Port;
+                int port = options.Value.DD_DOGSTATSD_PORT;
                 _statsdUdp = new StatsdUDP(host, port);
             }
         }
