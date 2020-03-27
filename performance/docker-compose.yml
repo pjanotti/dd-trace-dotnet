@@ -36,8 +36,7 @@ services:
     - DD_SERVICE_NAME=app-no-profiler-${TRACER_NUGET_VERSION}
     - DD_AGENT_HOST=datadog-agent
     - DD_TRACER_VERSION=${TRACER_NUGET_VERSION}
-    - DD_DIAGNOSTIC_SOURCE_ENABLED=true
-    - DD_MIDDLEWARE_ENABLED=true
+    - DD_MANUAL_SPAN_COUNT=${MANUAL_SPAN_COUNT}
     ports:
     - "127.0.0.1:60001:80"
   app-project:
@@ -53,8 +52,7 @@ services:
     - DD_SERVICE_NAME=app-no-profiler-latest
     - DD_AGENT_HOST=datadog-agent
     - DD_TRACER_VERSION=project
-    - DD_DIAGNOSTIC_SOURCE_ENABLED=true
-    - DD_MIDDLEWARE_ENABLED=true
+    - DD_MANUAL_SPAN_COUNT=${MANUAL_SPAN_COUNT}
     ports:
     - "127.0.0.1:60002:80"
 #  app-profiler:
@@ -67,7 +65,8 @@ services:
 #    environment:
 #    - DD_SERVICE_NAME=app-with-profiler
 #    - DD_AGENT_HOST=datadog-agent
-#    - DD_MIDDLEWARE_ENABLED=true
+#    - DD_TRACER_VERSION=${TRACER_NUGET_VERSION}
+#    - DD_MANUAL_SPAN_COUNT=${MANUAL_SPAN_COUNT}
 #    - CORECLR_ENABLE_PROFILING=1
 #    ports:
 #    - "127.0.0.1:60003:80"

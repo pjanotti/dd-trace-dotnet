@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Datadog.RuntimeMetrics;
 using Datadog.RuntimeMetrics.Hosting;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace AspNetCore31
 {
@@ -26,36 +26,39 @@ namespace AspNetCore31
         public void ConfigureServices(IServiceCollection services)
         {
             // configure options from default sources (e.g. env vars)
-            services.Configure<TracingOptions>(Configuration);
-            services.Configure<StatsdOptions>(Configuration);
+            services.Configure<StatsdMetricsOptions>(Configuration);
 
             // register the global Tracer
-            services.AddDatadogTracing();
+            services.AddDatadogTracing(Tracer.Instance);
 
             // register the services required to collect metrics and send them to dogstatsd
-            services.AddDatadogRuntimeMetrics();
+            services.AddDatadogRuntimeMetrics(options => options.Tags = GetMetricsTags());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Tracer tracer, IOptions<TracingOptions> tracingOptions)
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Tracer tracer)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            if (tracingOptions.Value.DD_DIAGNOSTIC_SOURCE_ENABLED)
+            int manualSpanCount = Configuration.GetValue("DD_MANUAL_SPAN_COUNT", 0);
+
+            if (manualSpanCount > 0)
             {
                 // hack: internal method
                 tracer.GetType()
                       .GetMethod("StartDiagnosticObservers", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                      ?.Invoke(tracer, null);
-            }
 
-            if (tracingOptions.Value.DD_MIDDLEWARE_ENABLED)
-            {
-                // if enabled, create a span for each request using middleware
-                app.UseDatadogTracing(tracer, tracingOptions);
+                // first span is created with DiagnosticSource,
+                // additional spans are created manually in middleware
+                if (manualSpanCount > 1)
+                {
+                    app.UseDatadogTracing(tracer, manualSpanCount);
+                }
             }
 
             app.Run(async context =>
@@ -63,6 +66,28 @@ namespace AspNetCore31
                         context.Response.ContentType = "text/plain";
                         await context.Response.WriteAsync("Hello, world!");
                     });
+        }
+
+        private IEnumerable<string> GetMetricsTags()
+        {
+            int manualSpanCount = Configuration.GetValue("DD_MANUAL_SPANS", 0);
+            string tracerVersion = Configuration["DD_TRACER_VERSION"];
+            string[] tags = new string[3];
+
+            tags[0] = $"service_name:{Tracer.Instance.DefaultServiceName}";
+
+            if (manualSpanCount > 0)
+            {
+                tags[1] = "tracer_mode:manual";
+                tags[2] = $"tracer_version:{tracerVersion}";
+            }
+            else
+            {
+                tags[1] = "tracer_mode:none";
+                tags[2] = "tracer_version:none";
+            }
+
+            return tags;
         }
     }
 }

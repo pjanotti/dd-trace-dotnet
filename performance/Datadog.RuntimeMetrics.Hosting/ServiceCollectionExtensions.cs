@@ -41,42 +41,6 @@ namespace Datadog.RuntimeMetrics.Hosting
             return services;
         }
 
-        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Action<TracingOptions> setupAction)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (setupAction == null)
-            {
-                throw new ArgumentNullException(nameof(setupAction));
-            }
-
-            services.AddOptions();
-            services.AddDatadogTracing();
-            services.Configure(setupAction);
-            return services;
-        }
-
-        public static IServiceCollection AddDatadogTracing(this IServiceCollection services, Tracer tracer, Action<TracingOptions> setupAction)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (tracer == null)
-            {
-                throw new ArgumentNullException(nameof(tracer));
-            }
-
-            services.AddOptions();
-            services.AddDatadogTracing(tracer);
-            services.Configure(setupAction);
-            return services;
-        }
-
         public static IServiceCollection AddDogStatsd(this IServiceCollection services)
         {
             if (services == null)
@@ -105,7 +69,7 @@ namespace Datadog.RuntimeMetrics.Hosting
             return services;
         }
 
-        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, Action<StatsdOptions> setupAction)
+        public static IServiceCollection AddDatadogRuntimeMetrics(this IServiceCollection services, Action<StatsdMetricsOptions> setupAction)
         {
             if (services == null)
             {

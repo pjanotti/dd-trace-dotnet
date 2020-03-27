@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using StatsdClient;
 
@@ -12,11 +13,17 @@ namespace Datadog.RuntimeMetrics
         private readonly double? _sampleRate;
         private readonly string[]? _tags;
 
-        public StatsdMetricsSubscriber(IStatsdUDP statsd, string[]? tags, double? sampleRate)
+        public StatsdMetricsSubscriber(IStatsdUDP statsd, StatsdMetricsOptions options)
         {
             _statsdUdp = statsd ?? throw new ArgumentNullException(nameof(statsd));
-            _tags = tags;
-            _sampleRate = sampleRate;
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _tags = options.Tags.ToArray();
+            _sampleRate = options.SampleRate;
         }
 
         public void OnCompleted()
@@ -50,7 +57,7 @@ namespace Datadog.RuntimeMetrics
                 commandBuilder.AppendLine();
             }
 
-            //_statsdUdp.SendAsync(commandBuilder.ToString());
+            _statsdUdp.SendAsync(commandBuilder.ToString());
         }
 
         public void Dispose()

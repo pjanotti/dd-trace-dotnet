@@ -12,7 +12,7 @@ namespace Datadog.RuntimeMetrics.Hosting
 
         private readonly IStatsdUDP _statsdUdp;
 
-        public StatsdUdpWrapper(IOptions<StatsdOptions> options)
+        public StatsdUdpWrapper(IOptions<StatsdConnectionOptions> options)
         {
             if (options == null)
             {
