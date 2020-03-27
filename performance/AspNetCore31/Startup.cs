@@ -26,7 +26,7 @@ namespace AspNetCore31
         public void ConfigureServices(IServiceCollection services)
         {
             // configure options from default sources (e.g. env vars)
-            services.Configure<StatsdMetricsOptions>(Configuration);
+            services.Configure<StatsdConnectionOptions>(Configuration);
 
             // register the global Tracer
             services.AddDatadogTracing(Tracer.Instance);
@@ -70,21 +70,22 @@ namespace AspNetCore31
 
         private IEnumerable<string> GetMetricsTags()
         {
-            int manualSpanCount = Configuration.GetValue("DD_MANUAL_SPANS", 0);
+            int manualSpanCount = Configuration.GetValue("DD_MANUAL_SPAN_COUNT", 0);
             string tracerVersion = Configuration["DD_TRACER_VERSION"];
-            string[] tags = new string[3];
+            string[] tags = new string[4];
 
-            tags[0] = $"service_name:{Tracer.Instance.DefaultServiceName}";
+            tags[0] = "service_name:AspNetCore31";
+            tags[1] = $"span_count:{manualSpanCount}";
 
-            if (manualSpanCount > 0)
+            if (manualSpanCount == 0)
             {
-                tags[1] = "tracer_mode:manual";
-                tags[2] = $"tracer_version:{tracerVersion}";
+                tags[2] = "tracer_mode:none";
+                tags[3] = "tracer_version:none";
             }
             else
             {
-                tags[1] = "tracer_mode:none";
-                tags[2] = "tracer_version:none";
+                tags[2] = "tracer_mode:manual";
+                tags[3] = $"tracer_version:{tracerVersion}";
             }
 
             return tags;

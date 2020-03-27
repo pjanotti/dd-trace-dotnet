@@ -16,7 +16,8 @@ namespace Datadog.RuntimeMetrics
         public static readonly Metric GcSizeLoh = new Metric("dotnet_counters.gc_size.loh", MetricType.Gauge);
         public static readonly Metric WorkingSet = new Metric("dotnet_counters.working_set", MetricType.Gauge);
         public static readonly Metric PrivateBytes = new Metric("dotnet_counters.private_bytes", MetricType.Gauge);
-        public static readonly Metric CpuUsage = new Metric("dotnet_counters.cpu_usage", MetricType.Gauge);
+        public static readonly Metric CpuPercent = new Metric("dotnet_counters.cpu_percent", MetricType.Gauge);
+        public static readonly Metric CpuTimeMs = new Metric("dotnet_counters.cpu_time", MetricType.Counting);
         public static readonly Metric AllocatedBytes = new Metric("dotnet_counters.alloc", MetricType.Counting);
 
         public string Name { get; }
