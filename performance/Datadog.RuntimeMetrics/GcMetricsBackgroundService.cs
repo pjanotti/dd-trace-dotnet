@@ -106,7 +106,9 @@ namespace Datadog.RuntimeMetrics
 
         public IDisposable Subscribe(IObserver<IEnumerable<MetricValue>> observer)
         {
-            return _observers.Subscribe(observer);
+            IDisposable listenerSubscription = _gcEventListener.Subscribe(observer);
+            IDisposable serviceSubscription = _observers.Subscribe(observer);
+            return new DisposableCollection(listenerSubscription, serviceSubscription);
         }
 
         protected override void Dispose(bool disposing)
