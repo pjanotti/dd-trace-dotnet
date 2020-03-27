@@ -6,7 +6,7 @@ using StatsdClient;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class StatsdMetricsSubscriber : IMetricsSubscriber, IDisposable
+    public class StatsdMetricsSubscriber : IObserver<IEnumerable<MetricValue>>, IDisposable
     {
         private readonly IStatsdUDP _statsdUdp;
         private readonly double? _sampleRate;

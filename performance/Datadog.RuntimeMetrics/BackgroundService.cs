@@ -69,9 +69,19 @@ namespace Datadog.RuntimeMetrics
             }
         }
 
-        public virtual void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
-            _stoppingCts?.Cancel();
+            if (disposing)
+            {
+                _executingTask?.Dispose();
+                _stoppingCts?.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

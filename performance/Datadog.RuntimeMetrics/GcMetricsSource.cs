@@ -1,30 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class GcMetricsSource : BackgroundService, IMetricsSourceBackgroundService
+    public class GcMetricsSource : BackgroundService, IObservable<IEnumerable<MetricValue>>
     {
         private readonly List<IObserver<IEnumerable<MetricValue>>> _observers = new List<IObserver<IEnumerable<MetricValue>>>();
-        private readonly TimeSpan _period = TimeSpan.FromSeconds(1);
-        private readonly IMetricsProvider<GcMetrics> _provider;
+        private readonly Process _process = Process.GetCurrentProcess();
 
-        public GcMetricsSource(IMetricsProvider<GcMetrics> provider)
-        {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
-        }
+        private TimeSpan _oldCpuTime = TimeSpan.Zero;
+        private DateTime _lastMonitorTime = DateTime.UtcNow;
+        private double _cpu;
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             return Task.Factory.StartNew(() =>
                                          {
                                              var values = new MetricValue[7];
+                                             var period = TimeSpan.FromSeconds(1);
 
                                              while (!stoppingToken.IsCancellationRequested)
                                              {
-                                                 GcMetrics metrics = _provider.GetMetrics();
+                                                 GcMetrics metrics = GetMetrics();
 
                                                  values[0] = new MetricValue(Metric.GcHeapSize, metrics.Allocated);
                                                  values[1] = new MetricValue(Metric.WorkingSet, metrics.WorkingSet);
@@ -41,7 +41,7 @@ namespace Datadog.RuntimeMetrics
 
                                                  if (!stoppingToken.IsCancellationRequested)
                                                  {
-                                                     Thread.Sleep(_period);
+                                                     Thread.Sleep(period);
                                                  }
                                              }
                                          },
@@ -50,29 +50,44 @@ namespace Datadog.RuntimeMetrics
                                          TaskScheduler.Default);
         }
 
+        public GcMetrics GetMetrics()
+        {
+            DateTime now = DateTime.UtcNow;
+            _process.Refresh();
+
+            double cpuElapsedTime = now.Subtract(_lastMonitorTime).TotalMilliseconds;
+
+            TimeSpan newCpuTime = _process.TotalProcessorTime;
+            double elapsedCpu = (newCpuTime - _oldCpuTime).TotalMilliseconds;
+            _cpu = elapsedCpu * 100 / Environment.ProcessorCount / cpuElapsedTime;
+
+            _lastMonitorTime = now;
+            _oldCpuTime = newCpuTime;
+
+            var metrics = new GcMetrics
+                          {
+                              Allocated = GC.GetTotalMemory(false),
+                              WorkingSet = _process.WorkingSet64,
+                              PrivateBytes = _process.PrivateMemorySize64,
+                              GcCountGen0 = GC.CollectionCount(0),
+                              GcCountGen1 = GC.CollectionCount(1),
+                              GcCountGen2 = GC.CollectionCount(2),
+                              CpuUsage = _cpu
+                          };
+
+            return metrics;
+        }
 
         public IDisposable Subscribe(IObserver<IEnumerable<MetricValue>> observer)
         {
             _observers.Add(observer);
-            return new Unsubscriber(_observers, observer);
+            return new MetricsUnsubscriber(_observers, observer);
         }
 
-        private class Unsubscriber : IDisposable
+        protected override void Dispose(bool disposing)
         {
-            private readonly List<IObserver<IEnumerable<MetricValue>>> _observers;
-            private readonly IObserver<IEnumerable<MetricValue>> _observer;
-
-            public Unsubscriber(List<IObserver<IEnumerable<MetricValue>>> observers, IObserver<IEnumerable<MetricValue>> observer)
-            {
-                _observers = observers ?? throw new ArgumentNullException(nameof(observers));
-                _observer = observer ?? throw new ArgumentNullException(nameof(observer));
-            }
-
-            /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
-            public void Dispose()
-            {
-                _observers.Remove(_observer);
-            }
+            _process?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }
