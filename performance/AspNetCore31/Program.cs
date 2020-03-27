@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace AspNetCore31
@@ -20,10 +19,6 @@ namespace AspNetCore31
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostingContext, config) =>
-                                           {
-                                               config.AddEnvironmentVariables(prefix: "DD_");
-                                           })
                 .ConfigureWebHostDefaults(webBuilder =>
                                           {
                                               webBuilder.UseStartup<Startup>();

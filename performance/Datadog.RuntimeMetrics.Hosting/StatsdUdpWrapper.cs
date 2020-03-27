@@ -19,11 +19,13 @@ namespace Datadog.RuntimeMetrics.Hosting
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (options.Value.Agent_Host.StartsWith(UnixDomainSocketPrefix))
+            string host = options.Value.Agent_Host;
+
+            if (host.StartsWith(UnixDomainSocketPrefix))
             {
                 var udsType = Type.GetType("StatsdUnixDomainSocket", throwOnError: false);
                 ConstructorInfo? constructor = udsType?.GetConstructor(new[] { typeof(string), typeof(int) });
-                object? statsUds = constructor?.Invoke(new object[] { options.Value.Agent_Host, 2048 });
+                object? statsUds = constructor?.Invoke(new object[] { host, 2048 });
 
                 if (statsUds is IStatsdUDP statsd)
                 {
@@ -36,7 +38,8 @@ namespace Datadog.RuntimeMetrics.Hosting
             }
             else
             {
-                _statsdUdp = new StatsdUDP(options.Value.Agent_Host, options.Value.Dogstatsd_Port);
+                int port = options.Value.Dogstatsd_Port;
+                _statsdUdp = new StatsdUDP(host, port);
             }
         }
 

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Datadog.RuntimeMetrics
 {
-    public class GcMetricsSource : BackgroundService, IObservable<IEnumerable<MetricValue>>
+    public class GcMetricsBackgroundService : BackgroundService, IObservable<IEnumerable<MetricValue>>
     {
-        private readonly List<IObserver<IEnumerable<MetricValue>>> _observers = new List<IObserver<IEnumerable<MetricValue>>>();
+        private readonly ObserverCollection<IEnumerable<MetricValue>> _observers = new ObserverCollection<IEnumerable<MetricValue>>();
         private readonly Process _process = Process.GetCurrentProcess();
 
         private TimeSpan _oldCpuTime = TimeSpan.Zero;
@@ -34,10 +34,7 @@ namespace Datadog.RuntimeMetrics
                                                  values[5] = new MetricValue(Metric.GcCountGen2, metrics.GcCountGen2);
                                                  values[6] = new MetricValue(Metric.CpuUsage, metrics.CpuUsage);
 
-                                                 foreach (IObserver<IEnumerable<MetricValue>> observer in _observers)
-                                                 {
-                                                     observer.OnNext(values);
-                                                 }
+                                                 _observers.OnNext(values);
 
                                                  if (!stoppingToken.IsCancellationRequested)
                                                  {
@@ -80,8 +77,7 @@ namespace Datadog.RuntimeMetrics
 
         public IDisposable Subscribe(IObserver<IEnumerable<MetricValue>> observer)
         {
-            _observers.Add(observer);
-            return new MetricsUnsubscriber(_observers, observer);
+            return _observers.Subscribe(observer);
         }
 
         protected override void Dispose(bool disposing)

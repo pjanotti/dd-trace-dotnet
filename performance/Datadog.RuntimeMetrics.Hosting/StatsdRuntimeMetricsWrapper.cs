@@ -7,12 +7,11 @@ using StatsdClient;
 
 namespace Datadog.RuntimeMetrics.Hosting
 {
-    public class StatsdMetricsSubscriberWrapper : IMetricsSubscriber, IDisposable
+    public class StatsdMetricsSubscriberWrapper : IObserver<IEnumerable<MetricValue>>, IDisposable
     {
         private readonly StatsdMetricsSubscriber _subscriber;
-        private readonly IDisposable? _subscription;
 
-        public StatsdMetricsSubscriberWrapper(IStatsdUDP statsdUdp, Tracer tracer, IMetricsSource? source, IOptions<StatsdOptions> options, IConfiguration configuration)
+        public StatsdMetricsSubscriberWrapper(IStatsdUDP statsdUdp, Tracer tracer, IOptions<StatsdOptions> options, IConfiguration configuration)
         {
             bool diagnosticSourceEnabled = configuration.GetValue("DD_DIAGNOSTIC_SOURCE_ENABLED", false);
             bool middlewareEnabled = configuration.GetValue("DD_MIDDLEWARE_ENABLED", false);
@@ -40,7 +39,6 @@ namespace Datadog.RuntimeMetrics.Hosting
             }
 
             _subscriber = new StatsdMetricsSubscriber(statsdUdp, internalTags.ToArray(), sampleRate: 1d);
-            _subscription = source?.Subscribe(_subscriber);
         }
 
         public void OnCompleted()
@@ -60,7 +58,6 @@ namespace Datadog.RuntimeMetrics.Hosting
 
         public void Dispose()
         {
-            _subscription?.Dispose();
             _subscriber?.Dispose();
         }
     }

@@ -36,6 +36,7 @@ namespace Datadog.RuntimeMetrics.Hosting
                 Tracer.Instance = tracer;
             }
 
+            services.AddOptions();
             services.TryAddSingleton(tracer);
             return services;
         }
@@ -98,10 +99,8 @@ namespace Datadog.RuntimeMetrics.Hosting
             services.AddOptions();
             services.AddDogStatsd();
 
-            services.TryAddTransient<IMetricsProvider<GcMetrics>, GcMetricsProvider>();
-            services.TryAddSingleton<IMetricsSourceBackgroundService, GcMetricsSource>();
-            services.TryAddTransient<IMetricsSubscriber, StatsdMetricsSubscriberWrapper>();
-
+            services.TryAddTransient<GcMetricsBackgroundService>();
+            services.TryAddTransient<StatsdMetricsSubscriberWrapper>();
             services.AddHostedService<GcMetricsHostedService>();
             return services;
         }

@@ -40,7 +40,11 @@ namespace AspNetCore31
                 app.UseDeveloperExceptionPage();
             }
 
-            if (tracingOptions.Value.Diagnostic_Source_Enabled)
+            bool diagnosticSourceEnabled = tracingOptions.Value.DD_DIAGNOSTIC_SOURCE_ENABLED;
+            bool middlewareEnabled = tracingOptions.Value.DD_MIDDLEWARE_ENABLED;
+            bool manualSpansEnabled = tracingOptions.Value.DD_MANUAL_SPANS_ENABLED;
+
+            if (diagnosticSourceEnabled)
             {
                 // hack: internal method
                 tracer.GetType()
@@ -48,7 +52,7 @@ namespace AspNetCore31
                      ?.Invoke(tracer, null);
             }
 
-            if (tracingOptions.Value.Middleware_Enabled)
+            if (middlewareEnabled)
             {
                 // if enabled, create a span for each request using middleware
                 app.UseDatadogTracing(tracer);
@@ -56,7 +60,7 @@ namespace AspNetCore31
 
             app.Run(async context =>
                     {
-                        using (Scope? scope = tracingOptions.Value.Manual_Spans_Enabled ? tracer.StartActive("manual") : null)
+                        using (Scope? scope = manualSpansEnabled ? tracer.StartActive("manual") : null)
                         {
                             if (scope != null)
                             {
@@ -65,7 +69,7 @@ namespace AspNetCore31
                                 span.SetTag("tag1", "value1");
                             }
 
-                            if (tracingOptions.Value.Manual_Spans_Enabled)
+                            if (manualSpansEnabled)
                             {
                                 for (int i = 0; i < 5; i++)
                                 {
@@ -77,6 +81,8 @@ namespace AspNetCore31
                                 }
                             }
 
+                            // write the response
+                            context.Response.ContentType = "text/plain";
                             await context.Response.WriteAsync("Hello, world!");
                         }
                     });

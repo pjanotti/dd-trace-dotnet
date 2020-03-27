@@ -1,17 +1,14 @@
 using System;
-using System.Threading.Tasks;
 using Datadog.RuntimeMetrics;
 
 namespace ConsoleApp1
 {
     public class Program
     {
-        public static async Task Main()
+        public static void Main()
         {
             var listener = new SimpleEventListener();
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
-
+            Console.ReadLine();
         }
     }
 }

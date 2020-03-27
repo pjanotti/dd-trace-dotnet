@@ -3,7 +3,6 @@ using System.Globalization;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace Datadog.RuntimeMetrics.Hosting
 {

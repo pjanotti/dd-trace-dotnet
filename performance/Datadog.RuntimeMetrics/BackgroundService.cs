@@ -6,7 +6,7 @@ namespace Datadog.RuntimeMetrics
 {
     // https://github.com/dotnet/runtime/blob/master/src/libraries/Microsoft.Extensions.Hosting.Abstractions/src/BackgroundService.cs
 
-    public abstract class BackgroundService : IBackgroundService, IDisposable
+    public abstract class BackgroundService : IDisposable
     {
         private Task? _executingTask;
         private CancellationTokenSource? _stoppingCts;
