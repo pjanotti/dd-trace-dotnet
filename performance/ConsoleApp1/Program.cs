@@ -7,8 +7,6 @@ namespace ConsoleApp1
     {
         public static void Main()
         {
-            var listener = new SimpleEventListener();
-            Console.ReadLine();
         }
     }
 }

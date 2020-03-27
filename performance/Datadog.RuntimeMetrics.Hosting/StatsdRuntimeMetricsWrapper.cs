@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Datadog.Trace;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -38,7 +39,8 @@ namespace Datadog.RuntimeMetrics.Hosting
                 internalTags.Add("tracer_version:none");
             }
 
-            _subscriber = new StatsdMetricsSubscriber(statsdUdp, internalTags.ToArray(), sampleRate: 1d);
+            string[] tags = internalTags.Concat(options.Value.Tags).ToArray();
+            _subscriber = new StatsdMetricsSubscriber(statsdUdp, tags, options.Value.SampleRate);
         }
 
         public void OnCompleted()

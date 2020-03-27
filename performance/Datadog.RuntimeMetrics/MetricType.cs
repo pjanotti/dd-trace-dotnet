@@ -18,5 +18,10 @@ namespace Datadog.RuntimeMetrics
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }
