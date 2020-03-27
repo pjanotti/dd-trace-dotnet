@@ -3,6 +3,7 @@ using System.Globalization;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Datadog.RuntimeMetrics.Hosting
 {
@@ -11,7 +12,7 @@ namespace Datadog.RuntimeMetrics.Hosting
         /// <summary>
         /// Adds Datadog tracing middleware.
         /// </summary>
-        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app, Tracer tracer, bool createAdditionalSpans)
+        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app, Tracer tracer, IOptions<TracingOptions> tracingOptions)
         {
             app.Use(async (context, next) =>
                     {
@@ -32,7 +33,7 @@ namespace Datadog.RuntimeMetrics.Hosting
                             middlewareSpan.SetTag(Tags.HttpUrl, url);
                             middlewareSpan.SetTag(Tags.Language, "dotnet");
 
-                            if (createAdditionalSpans)
+                            if (tracingOptions.Value.DD_MANUAL_SPANS_ENABLED)
                             {
                                 using (Scope manualScope = tracer.StartActive("manual"))
                                 {

@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 
 namespace Datadog.RuntimeMetrics
 {
+    [DebuggerDisplay("Name = {Name}, Type = {Type.Name}")]
     public class Metric
     {
         public static readonly Metric GcHeapSize = new Metric("dotnet_counters.gc_heap_size", MetricType.Gauge);
@@ -24,6 +26,11 @@ namespace Datadog.RuntimeMetrics
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

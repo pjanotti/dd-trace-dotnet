@@ -38,7 +38,7 @@ namespace Datadog.RuntimeMetrics.Hosting
             }
 
             string[] tags = internalTags.Concat(statsdOptions.Value.Tags).ToArray();
-            _subscriber = new StatsdMetricsSubscriber(statsdUdp, statsdOptions.Value.SampleRate, tags);
+            _subscriber = new StatsdMetricsSubscriber(statsdUdp, tags, statsdOptions.Value.SampleRate);
         }
 
         public void OnCompleted()

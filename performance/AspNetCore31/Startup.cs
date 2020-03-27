@@ -34,8 +34,6 @@ namespace AspNetCore31
 
             // register the services required to collect metrics and send them to dogstatsd
             services.AddDatadogRuntimeMetrics();
-
-            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,11 +44,7 @@ namespace AspNetCore31
                 app.UseDeveloperExceptionPage();
             }
 
-            bool diagnosticSourceEnabled = tracingOptions.Value.DD_DIAGNOSTIC_SOURCE_ENABLED;
-            bool middlewareEnabled = tracingOptions.Value.DD_MIDDLEWARE_ENABLED;
-            bool manualSpansEnabled = tracingOptions.Value.DD_MANUAL_SPANS_ENABLED;
-
-            if (diagnosticSourceEnabled)
+            if (tracingOptions.Value.DD_DIAGNOSTIC_SOURCE_ENABLED)
             {
                 // hack: internal method
                 tracer.GetType()
@@ -58,10 +52,10 @@ namespace AspNetCore31
                      ?.Invoke(tracer, null);
             }
 
-            if (middlewareEnabled)
+            if (tracingOptions.Value.DD_MIDDLEWARE_ENABLED)
             {
                 // if enabled, create a span for each request using middleware
-                app.UseDatadogTracing(tracer, manualSpansEnabled);
+                app.UseDatadogTracing(tracer, tracingOptions);
             }
 
             app.Run(async context =>

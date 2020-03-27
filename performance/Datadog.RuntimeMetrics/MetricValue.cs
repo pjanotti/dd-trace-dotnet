@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace Datadog.RuntimeMetrics
 {
+    [DebuggerDisplay("Metric = {Metric}, Value = {Value}, Tags = {Tags}")]
     public struct MetricValue
     {
         public Metric Metric;

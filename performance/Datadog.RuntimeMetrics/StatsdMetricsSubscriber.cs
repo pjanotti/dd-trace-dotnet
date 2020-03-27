@@ -50,7 +50,7 @@ namespace Datadog.RuntimeMetrics
                 commandBuilder.AppendLine();
             }
 
-            _statsdUdp.SendAsync(commandBuilder.ToString());
+            //_statsdUdp.SendAsync(commandBuilder.ToString());
         }
 
         public void Dispose()
