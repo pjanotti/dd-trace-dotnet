@@ -10,10 +10,23 @@ namespace Datadog.RuntimeMetrics
     {
         private readonly ObserverCollection<IEnumerable<MetricValue>> _observers = new ObserverCollection<IEnumerable<MetricValue>>();
         private readonly Process _process = Process.GetCurrentProcess();
+        private readonly GcEventListener _gcEventListener = new GcEventListener();
 
         private TimeSpan _oldCpuTime = TimeSpan.Zero;
         private DateTime _lastMonitorTime = DateTime.UtcNow;
         private double _cpu;
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _gcEventListener.EnableEvents();
+            return base.StartAsync(cancellationToken);
+        }
+
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            _gcEventListener.DisableEvents();
+            return base.StopAsync(cancellationToken);
+        }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {

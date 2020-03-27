@@ -17,10 +17,6 @@ namespace Datadog.RuntimeMetrics
         public static readonly Metric CpuUsage = new Metric("dotnet_counters.cpu_usage", MetricType.Gauge);
         public static readonly Metric AllocatedBytes = new Metric("dotnet_counters.alloc", MetricType.Counting);
 
-        public static class HeapStats
-        {
-        }
-
         public string Name { get; }
         public MetricType Type { get; }
 

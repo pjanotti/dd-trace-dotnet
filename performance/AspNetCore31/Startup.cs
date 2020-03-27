@@ -61,36 +61,13 @@ namespace AspNetCore31
             if (middlewareEnabled)
             {
                 // if enabled, create a span for each request using middleware
-                app.UseDatadogTracing(tracer);
+                app.UseDatadogTracing(tracer, manualSpansEnabled);
             }
 
             app.Run(async context =>
                     {
-                        using (Scope? scope = manualSpansEnabled ? tracer.StartActive("manual") : null)
-                        {
-                            if (scope != null)
-                            {
-                                Span span = scope.Span;
-                                span.Type = SpanTypes.Custom;
-                                span.SetTag("tag1", "value1");
-                            }
-
-                            if (manualSpansEnabled)
-                            {
-                                for (int i = 0; i < 5; i++)
-                                {
-                                    using (Scope innerScope = tracer.StartActive("manual"))
-                                    {
-                                        Span span = innerScope.Span;
-                                        span.Type = SpanTypes.Custom;
-                                    }
-                                }
-                            }
-
-                            // write the response
-                            context.Response.ContentType = "text/plain";
-                            await context.Response.WriteAsync("Hello, world!");
-                        }
+                        context.Response.ContentType = "text/plain";
+                        await context.Response.WriteAsync("Hello, world!");
                     });
         }
     }

@@ -11,7 +11,7 @@ namespace Datadog.RuntimeMetrics.Hosting
         /// <summary>
         /// Adds Datadog tracing middleware.
         /// </summary>
-        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app, Tracer tracer)
+        public static IApplicationBuilder UseDatadogTracing(this IApplicationBuilder app, Tracer tracer, bool createAdditionalSpans)
         {
             app.Use(async (context, next) =>
                     {
@@ -21,21 +21,43 @@ namespace Datadog.RuntimeMetrics.Hosting
                         string resourceUrl = new Uri(url).AbsolutePath.ToLowerInvariant();
                         string resourceName = $"{httpMethod} {resourceUrl}";
 
-                        using (Scope scope = tracer.StartActive("aspnet_core.middleware"))
+                        using (Scope middlewareScope = tracer.StartActive("middleware"))
                         {
-                            Span span = scope.Span;
-                            span.Type = SpanTypes.Web;
-                            span.ResourceName = resourceName?.Trim();
-                            span.SetTag(Tags.SpanKind, SpanKinds.Server);
-                            span.SetTag(Tags.HttpMethod, httpMethod);
-                            span.SetTag(Tags.HttpRequestHeadersHost, request.Host.Value);
-                            span.SetTag(Tags.HttpUrl, url);
-                            span.SetTag(Tags.Language, "dotnet");
+                            Span middlewareSpan = middlewareScope.Span;
+                            middlewareSpan.Type = SpanTypes.Web;
+                            middlewareSpan.ResourceName = resourceName?.Trim();
+                            middlewareSpan.SetTag(Tags.SpanKind, SpanKinds.Server);
+                            middlewareSpan.SetTag(Tags.HttpMethod, httpMethod);
+                            middlewareSpan.SetTag(Tags.HttpRequestHeadersHost, request.Host.Value);
+                            middlewareSpan.SetTag(Tags.HttpUrl, url);
+                            middlewareSpan.SetTag(Tags.Language, "dotnet");
+
+                            if (createAdditionalSpans)
+                            {
+                                using (Scope manualScope = tracer.StartActive("manual"))
+                                {
+                                    Span manualSpan = manualScope.Span;
+                                    manualSpan.Type = SpanTypes.Custom;
+                                    manualSpan.SetTag("tag1", "value1");
+                                    manualSpan.SetTag("tag2", "value2");
+
+                                    for (int i = 0; i < 5; i++)
+                                    {
+                                        using (Scope innerScope = tracer.StartActive("manual"))
+                                        {
+                                            Span innerSpan = innerScope.Span;
+                                            innerSpan.Type = SpanTypes.Custom;
+                                            manualSpan.SetTag("tag1", "value1");
+                                            manualSpan.SetTag("tag2", "value2");
+                                        }
+                                    }
+                                }
+                            }
 
                             // call the next middleware in the chain
                             await next.Invoke();
 
-                            span.SetTag(Tags.HttpStatusCode, context.Response.StatusCode.ToString(CultureInfo.InvariantCulture));
+                            middlewareSpan.SetTag(Tags.HttpStatusCode, context.Response.StatusCode.ToString(CultureInfo.InvariantCulture));
                         }
                     });
 

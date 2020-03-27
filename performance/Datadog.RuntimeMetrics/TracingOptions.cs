@@ -9,5 +9,7 @@ namespace Datadog.RuntimeMetrics
         public bool DD_MIDDLEWARE_ENABLED { get; set; }
 
         public bool DD_MANUAL_SPANS_ENABLED { get; set; }
+
+        public string DD_TRACER_VERSION { get; set; } = "latest";
     }
 }

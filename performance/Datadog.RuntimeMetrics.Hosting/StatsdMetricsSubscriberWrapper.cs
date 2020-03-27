@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Datadog.Trace;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using StatsdClient;
 
@@ -12,15 +10,15 @@ namespace Datadog.RuntimeMetrics.Hosting
     {
         private readonly StatsdMetricsSubscriber _subscriber;
 
-        public StatsdMetricsSubscriberWrapper(IStatsdUDP statsdUdp, Tracer tracer, IOptions<StatsdOptions> options, IConfiguration configuration)
+        public StatsdMetricsSubscriberWrapper(IStatsdUDP statsdUdp, IOptions<StatsdOptions> statsdOptions, IOptions<TracingOptions> tracingOptions)
         {
-            bool diagnosticSourceEnabled = configuration.GetValue("DD_DIAGNOSTIC_SOURCE_ENABLED", false);
-            bool middlewareEnabled = configuration.GetValue("DD_MIDDLEWARE_ENABLED", false);
-            string tracerVersion = configuration.GetValue("DD_TRACER_VERSION", "latest");
+            bool diagnosticSourceEnabled = tracingOptions.Value.DD_DIAGNOSTIC_SOURCE_ENABLED;
+            bool manualSpansEnabled = tracingOptions.Value.DD_MANUAL_SPANS_ENABLED;
+            string tracerVersion = tracingOptions.Value.DD_TRACER_VERSION;
 
             var internalTags = new List<string>
                                {
-                                   $"service_name:{tracer.DefaultServiceName}"
+                                   $"service_name:{statsdOptions.Value.ServiceName}"
                                };
 
             if (diagnosticSourceEnabled)
@@ -28,9 +26,9 @@ namespace Datadog.RuntimeMetrics.Hosting
                 internalTags.Add("tracer_mode:diagnostic-source");
                 internalTags.Add($"tracer_version:{tracerVersion}");
             }
-            else if (middlewareEnabled)
+            else if (manualSpansEnabled)
             {
-                internalTags.Add("tracer_mode:middleware");
+                internalTags.Add("tracer_mode:manual");
                 internalTags.Add($"tracer_version:{tracerVersion}");
             }
             else
@@ -39,8 +37,8 @@ namespace Datadog.RuntimeMetrics.Hosting
                 internalTags.Add("tracer_version:none");
             }
 
-            string[] tags = internalTags.Concat(options.Value.Tags).ToArray();
-            _subscriber = new StatsdMetricsSubscriber(statsdUdp, tags, options.Value.SampleRate);
+            string[] tags = internalTags.Concat(statsdOptions.Value.Tags).ToArray();
+            _subscriber = new StatsdMetricsSubscriber(statsdUdp, statsdOptions.Value.SampleRate, tags);
         }
 
         public void OnCompleted()
