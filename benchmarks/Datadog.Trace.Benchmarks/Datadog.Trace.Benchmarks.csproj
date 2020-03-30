@@ -3,7 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <DatadogTracerVersion Condition="$(DatadogTracerVersion) == ''">project</DatadogTracerVersion>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DatadogTracerVersion Condition="$(DatadogTracerVersion) == ''">1.15.0</DatadogTracerVersion>
   </PropertyGroup>
 
   <ItemGroup>

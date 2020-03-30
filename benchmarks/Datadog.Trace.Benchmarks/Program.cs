@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using Datadog.Trace.ExtensionMethods;
 
@@ -16,15 +18,25 @@ namespace Datadog.Trace.Benchmarks
         }
     }
 
+    public class Config : ManualConfig
+    {
+        public Config()
+        {
+            Add(Job.Default.WithNuGet("Datadog.Trace", "1.15.0").WithId("1.15.0"));
+            Add(Job.Default.WithNuGet("Datadog.Trace", "1.15.1-prerelease").WithId("1.15.1-prerelease"));
+        }
+    }
+
     [MemoryDiagnoser]
     [GcServer(true)]
     [GcForce(false)]
+    [Config(typeof(Config))]
     public class Tests
     {
         [Params(1, 5, 10, 20, 40)]
         public int SpanCount { get; set; }
 
-        private MethodInfo Flush = typeof(Tracer).GetMethod("FlushAsync", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly MethodInfo Flush = typeof(Tracer).GetMethod("FlushAsync", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         [Benchmark]
         public void WithTraces()
