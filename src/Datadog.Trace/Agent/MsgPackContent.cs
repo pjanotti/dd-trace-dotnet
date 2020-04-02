@@ -7,7 +7,7 @@ using MsgPack.Serialization;
 
 namespace Datadog.Trace.Agent
 {
-    internal class MsgPackContent<T> : HttpContent
+    public class MsgPackContent<T> : HttpContent
     {
         private readonly SerializationContext _serializationContext;
 

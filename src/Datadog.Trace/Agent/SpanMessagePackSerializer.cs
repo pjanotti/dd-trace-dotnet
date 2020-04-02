@@ -5,7 +5,7 @@ using MsgPack.Serialization;
 
 namespace Datadog.Trace.Agent
 {
-    internal class SpanMessagePackSerializer : MessagePackSerializer<Span>
+    public class SpanMessagePackSerializer : MessagePackSerializer<Span>
     {
         public SpanMessagePackSerializer(SerializationContext context)
             : base(context)
@@ -67,13 +67,13 @@ namespace Datadog.Trace.Agent
                 packer.Pack(1);
             }
 
-            if (value.Tags != null)
+            if (value.Tags?.Count > 0)
             {
                 packer.PackString("meta");
                 packer.Pack(value.Tags);
             }
 
-            if (value.Metrics != null)
+            if (value.Metrics?.Count > 0)
             {
                 packer.PackString("metrics");
                 packer.PackDictionary(value.Metrics);

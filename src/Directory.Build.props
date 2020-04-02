@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;net461;netstandard2.0</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
     <!-- NuGet packages -->
     <IsPackable>true</IsPackable>

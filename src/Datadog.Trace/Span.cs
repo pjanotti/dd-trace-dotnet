@@ -37,6 +37,28 @@ namespace Datadog.Trace
                 TraceId);
         }
 
+        public Span(ulong traceId,
+                    ulong spanId,
+                    // ulong? parentId,
+                    bool error,
+                    string operationName,
+                    string resourceName,
+                    string serviceName,
+                    string spanType,
+                    DateTimeOffset startTime,
+                    TimeSpan duration)
+        {
+            Context = new SpanContext(traceId, spanId, null, serviceName);
+            // Context.ParentId = parentId;
+            OperationName = operationName;
+            ResourceName = resourceName;
+            ServiceName = serviceName;
+            Type = spanType;
+            StartTime = startTime;
+            Duration = duration;
+            Error = error;
+        }
+
         /// <summary>
         /// Gets or sets operation name
         /// </summary>
@@ -80,13 +102,13 @@ namespace Datadog.Trace
 
         internal SpanContext Context { get; }
 
-        internal DateTimeOffset StartTime { get; }
+        public DateTimeOffset StartTime { get; }
 
-        internal TimeSpan Duration { get; private set; }
+        public TimeSpan Duration { get; private set; }
 
-        internal Dictionary<string, string> Tags { get; private set; }
+        public Dictionary<string, string> Tags { get; private set; }
 
-        internal Dictionary<string, double> Metrics { get; private set; }
+        public Dictionary<string, double> Metrics { get; private set; }
 
         internal bool IsFinished { get; private set; }
 
@@ -120,7 +142,7 @@ namespace Datadog.Trace
                 {
                     foreach (var kv in Tags)
                     {
-                        sb.Append($"\t{kv.Key}:{kv.Value}");
+                        sb.AppendLine($"  {kv.Key}:{kv.Value}");
                     }
                 }
             }
@@ -134,7 +156,7 @@ namespace Datadog.Trace
                 {
                     foreach (var kv in Metrics)
                     {
-                        sb.Append($"\t{kv.Key}:{kv.Value}");
+                        sb.AppendLine($"  {kv.Key}:{kv.Value}");
                     }
                 }
             }

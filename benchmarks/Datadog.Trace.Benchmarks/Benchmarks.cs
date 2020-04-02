@@ -27,7 +27,7 @@ namespace Datadog.Trace.Benchmarks
                 rootSpan.SetTag("traceIndex", "0");
                 rootSpan.SetTag("key1", "value1");
                 rootSpan.SetTag("key2", "value2");
-                rootSpan.SetTraceSamplingPriority(SamplingPriority.UserKeep);
+                rootSpan.SetTraceSamplingPriority(SamplingPriority.UserReject);
 
                 for (int spanIndex = 0; spanIndex < SpanCount - 1; spanIndex++)
                 {
