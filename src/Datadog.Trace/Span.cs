@@ -100,7 +100,7 @@ namespace Datadog.Trace
         /// </summary>
         public ulong SpanId => Context.SpanId;
 
-        internal SpanContext Context { get; }
+        public SpanContext Context { get; }
 
         public DateTimeOffset StartTime { get; }
 

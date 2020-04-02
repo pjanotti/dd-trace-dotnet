@@ -16,7 +16,7 @@ namespace MsgPack.Benchmarks
     [GcForce(false)]
     public class Benchmarks
     {
-        private const int InitialBufferSize = 3 * 1024 * 1024;
+        private const int InitialBufferSize = 10 * 1024 * 1024; // 10MB
 
         [Params(1, 300)]
         public int TraceCount { get; set; }
@@ -24,10 +24,8 @@ namespace MsgPack.Benchmarks
         [Params(1, 10)]
         public int SpansPerTrace { get; set; }
 
-        private readonly MemoryStream _stream1 = new MemoryStream(InitialBufferSize);
-        private readonly MemoryStream _stream2 = new MemoryStream(InitialBufferSize);
-        private readonly ArrayBufferWriter<byte> _bufferWriter = new ArrayBufferWriter<byte>(InitialBufferSize);
-
+        private MemoryStream _stream;
+        private ArrayBufferWriter<byte> _bufferWriter;
         private SerializationContext _msgPackSerializationContext;
         private SpanMessagePackSerializer _msgPackSerializer;
         private Span[][] _traces;
@@ -36,6 +34,9 @@ namespace MsgPack.Benchmarks
         [GlobalSetup]
         public void SetupTraces()
         {
+            _stream = new MemoryStream(InitialBufferSize);
+            _bufferWriter = new ArrayBufferWriter<byte>(InitialBufferSize);
+
             _msgPackSerializationContext = new SerializationContext();
             _msgPackSerializer = new SpanMessagePackSerializer(_msgPackSerializationContext);
 
@@ -128,47 +129,47 @@ namespace MsgPack.Benchmarks
         }
 
         [Benchmark]
-        public Task MsgPackCli_MsgPackContent_NullStream()
+        public Task MsgPack_Cli()
         {
-            _stream1.Position = 0;
+            _stream.Position = 0;
             var content = new MsgPackContent<Span[][]>(_traces, _msgPackSerializationContext);
-            return content.CopyToAsync(_stream1);
+            return content.CopyToAsync(_stream);
         }
 
         [Benchmark]
-        public Task MessagePack_MessagePackSerializer_NullStream()
+        public Task MessagePackSerializer()
         {
-            _stream2.Position = 0;
-            return global::MessagePack.MessagePackSerializer.SerializeAsync(_stream2, _mockTraces);
+            _stream.Position = 0;
+            return global::MessagePack.MessagePackSerializer.SerializeAsync(_stream, _mockTraces);
         }
 
         [Benchmark]
-        public void MessagePack_MessagePackWriter()
+        public void MessagePackWriter()
         {
             _bufferWriter.Clear();
-            Serialize(_mockTraces, _bufferWriter);
+            Serialize(_traces, _bufferWriter);
         }
 
-        public static void Serialize(MockSpan[][] traces, IBufferWriter<byte> bufferWriter)
+        public static void Serialize(Span[][] traces, IBufferWriter<byte> bufferWriter)
         {
             var writer = new MessagePackWriter(bufferWriter);
 
             writer.WriteArrayHeader(traces.Length);
 
-            foreach (MockSpan[] trace in traces)
+            foreach (Span[] trace in traces)
             {
                 writer.WriteArrayHeader(trace.Length);
 
-                foreach (MockSpan span in trace)
+                foreach (Span span in trace)
                 {
                     int length = 8;
 
-                    if (span.ParentId != null)
+                    if (span.Context.ParentId != null)
                     {
                         length++;
                     }
 
-                    if (span.Error == 1)
+                    if (span.Error)
                     {
                         length++;
                     }
@@ -189,25 +190,25 @@ namespace MsgPack.Benchmarks
                     writer.Write("span_id");
                     writer.Write(span.SpanId);
                     writer.Write("name");
-                    writer.Write(span.Operation);
+                    writer.Write(span.OperationName);
                     writer.Write("resource");
-                    writer.Write(span.Resource);
+                    writer.Write(span.ResourceName);
                     writer.Write("service");
-                    writer.Write(span.Service);
+                    writer.Write(span.ServiceName);
                     writer.Write("type");
                     writer.Write(span.Type);
                     writer.Write("start");
-                    writer.Write(span.Start);
+                    writer.Write(span.StartTime.ToUnixTimeNanoseconds());
                     writer.Write("duration");
-                    writer.Write(span.Duration);
+                    writer.Write(span.Duration.ToNanoseconds());
 
-                    if (span.ParentId != null)
+                    if (span.Context.ParentId != null)
                     {
                         writer.Write("parent_id");
-                        writer.Write((ulong)span.ParentId);
+                        writer.Write((ulong)span.Context.ParentId);
                     }
 
-                    if (span.Error == 1)
+                    if (span.Error)
                     {
                         writer.Write("error");
                         writer.Write(1);
