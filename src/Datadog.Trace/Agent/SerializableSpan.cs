@@ -1,5 +1,6 @@
 #if !NET45
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Datadog.Trace.ExtensionMethods;
@@ -49,12 +50,12 @@ namespace Datadog.Trace.Agent
 
         public static SerializableSpan[][] ConvertTraces(Span[][] traces)
         {
-            var serializableTraces = new SerializableSpan[traces.Length][];
+            var serializableTraces = ArrayPool<SerializableSpan[]>.Shared.Rent(traces.Length);
 
             for (int traceIndex = 0; traceIndex < traces.Length; traceIndex++)
             {
                 Span[] trace = traces[traceIndex];
-                var serializableTrace = new SerializableSpan[trace.Length];
+                SerializableSpan[] serializableTrace = ArrayPool<SerializableSpan>.Shared.Rent(trace.Length);
 
                 for (int spanIndex = 0; spanIndex < trace.Length; spanIndex++)
                 {

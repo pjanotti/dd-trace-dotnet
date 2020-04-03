@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 
 namespace Datadog.Trace.Agent
 {
@@ -38,8 +39,7 @@ namespace Datadog.Trace.Agent
         {
             lock (_items)
             {
-                // copy items from buffer into new array
-                var result = new T[_count];
+                T[] result = ArrayPool<T>.Shared.Rent(_count);
                 Array.Copy(_items, result, _count);
 
                 // clear buffer
