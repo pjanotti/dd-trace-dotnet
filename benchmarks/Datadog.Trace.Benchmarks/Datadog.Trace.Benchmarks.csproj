@@ -8,7 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <Configuration>Release</Configuration>
-    <DatadogTracerVersion Condition="$(DatadogTracerVersion) == ''">1.15.0</DatadogTracerVersion>
+    <DatadogTracerVersion Condition="$(DatadogTracerVersion) == ''">project</DatadogTracerVersion>
   </PropertyGroup>
 
   <ItemGroup>
