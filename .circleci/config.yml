@@ -1,0 +1,15 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.2.0
+
+jobs:
+  build:
+    executor: win/default
+    shell: cmd.exe
+
+    steps:
+      - checkout
+      - run: dotnet --list-sdks
+      - run: choco install wixtoolset
+      - run: msbuild Datadog.Trace.proj /t:BuildCsharp /p:Configuration=Release
