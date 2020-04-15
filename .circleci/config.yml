@@ -22,3 +22,9 @@ jobs:
       - run: msbuild Datadog.Trace.proj /t:msi /p:Configuration=Release;Platform=x64
       - run: msbuild Datadog.Trace.proj /t:msi /p:Configuration=Release;Platform=x86
       - run: msbuild Datadog.Trace.proj /t:CreateHomeDirectory /p:Configuration=Release;Platform=x64
+      - store_artifacts:
+          path: C:\Users\circleci\project\deploy\Datadog.Trace.ClrProfiler.WindowsInstaller\bin\Release\x64\en-us\
+      - store_artifacts:
+          path: C:\Users\circleci\project\deploy\Datadog.Trace.ClrProfiler.WindowsInstaller\bin\Release\x86\en-us\
+      - store_artifacts:
+          path: C:\Users\circleci\project\src\bin\windows-tracer-home.zip
