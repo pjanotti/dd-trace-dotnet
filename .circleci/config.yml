@@ -6,7 +6,6 @@ orbs:
 jobs:
   build:
     executor: win/default
-    shell: cmd.exe
 
     steps:
       - checkout
